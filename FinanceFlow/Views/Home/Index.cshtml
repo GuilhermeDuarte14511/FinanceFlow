@@ -1,0 +1,291 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <select id="selectMes" class="form-select">
+            @for (int i = 1; i <= 12; i++)
+            {
+                <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+            }
+        </select>
+    </div>
+</div>
+
+<!-- Cards de Receita e Despesa -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header"><i class="fas fa-arrow-up"></i> Receitas</div>
+            <div class="card-body">
+                <h5 class="card-title" id="valorReceita"></h5>
+                <p class="card-text">Total de receitas no mês.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-header"><i class="fas fa-arrow-down"></i> Despesas</div>
+            <div class="card-body">
+                <h5 class="card-title" id="valorDespesa"></h5>
+                <p class="card-text">Total de despesas no mês.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">Resumo Financeiro</div>
+            <div class="card-body">
+                <div class="text-center" id="loadingGrafico" style="display: none;">🔄 Carregando...</div>
+                <div style="width: 100%; height: 400px;">
+                    <canvas id="graficoFinanceiro"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela de Lançamentos -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Detalhamento Financeiro</span>
+                <button class="btn btn-primary btn-sm" id="adicionarLancamento">+ Adicionar Lançamento</button>
+            </div>
+            <div class="card-body">
+                <div class="text-center" id="loadingTabela" style="display: none;">🔄 Carregando...</div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Forma de Pagamento</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaLancamentos">
+                        <tr>
+                            <td colspan="3" class="text-center">Nenhum lançamento adicionado</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Adicionar Lançamento -->
+<div class="modal fade" id="modalLancamento" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Adicionar Lançamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formLancamento">
+                    <div class="mb-3">
+                        <label for="tipoLancamento" class="form-label">Tipo</label>
+                        <select id="tipoLancamento" class="form-select">
+                            <option value="1">Receita</option>
+                            <option value="2">Despesa</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="formaPagamento" class="form-label">Forma de Pagamento</label>
+                        <select id="formaPagamento" class="form-select">
+                            <option value="1">Cartão de Crédito</option>
+                            <option value="2">Cartão de Débito</option>
+                            <option value="3">Dinheiro</option>
+                            <option value="4">Pix</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoriaLancamento" class="form-label">Categoria</label>
+                        <select id="categoriaLancamento" class="form-select">
+                            <!-- As opções serão carregadas dinamicamente via JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valorLancamento" class="form-label">Valor</label>
+                        <input type="text" class="form-control" id="valorLancamento">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Adicionar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let graficoFinanceiro = null;
+
+        function atualizarDados() {
+            document.getElementById("loadingGrafico").style.display = "block";
+            document.getElementById("loadingTabela").style.display = "block";
+
+            let mesSelecionado = document.getElementById("selectMes").value;
+            let anoAtual = new Date().getFullYear(); // Pega o ano atual
+
+            fetch(`/Home/ObterTransacoes?mes=${mesSelecionado}&ano=${anoAtual}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("loadingGrafico").style.display = "none";
+                    document.getElementById("loadingTabela").style.display = "none";
+
+                    document.getElementById("valorReceita").innerText = data.totalReceitas ? `R$ ${data.totalReceitas.toFixed(2)}` : "R$ 0,00";
+                    document.getElementById("valorDespesa").innerText = data.totalDespesas ? `R$ ${data.totalDespesas.toFixed(2)}` : "R$ 0,00";
+
+                    let tabela = document.getElementById("tabelaLancamentos");
+                    tabela.innerHTML = "";
+                    if (!data.transacoes || data.transacoes.length === 0) {
+                        tabela.innerHTML = `<tr><td colspan="3" class="text-center">Nenhum lançamento adicionado</td></tr>`;
+                    } else {
+                        data.transacoes.forEach(transacao => {
+                            let valorFormatado = transacao.valor ? `R$ ${parseFloat(transacao.valor).toFixed(2)}` : "R$ 0,00";
+                            tabela.innerHTML += `<tr>
+                                <td>${transacao.tipo}</td>
+                                <td>${transacao.formaPagamento}</td>
+                                <td>${valorFormatado}</td>
+                            </tr>`;
+                        });
+                    }
+
+                    if (graficoFinanceiro) {
+                        graficoFinanceiro.destroy();
+                    }
+
+                    let ctx = document.getElementById("graficoFinanceiro").getContext("2d");
+                    graficoFinanceiro = new Chart(ctx, {
+                        type: "bar",
+                        data: {
+                            labels: ["Receitas", "Despesas"],
+                            datasets: [{
+                                label: "Resumo Financeiro",
+                                data: [data.totalReceitas || 0, data.totalDespesas || 0],
+                                backgroundColor: ["green", "red"]
+                            }]
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error("Erro ao buscar os dados:", error);
+                    document.getElementById("loadingGrafico").style.display = "none";
+                    document.getElementById("loadingTabela").style.display = "none";
+                });
+        }
+
+        function carregarCategorias() {
+            let selectCategoria = document.getElementById("categoriaLancamento");
+            selectCategoria.innerHTML = `<option value="">Carregando...</option>`;
+
+            fetch("/Home/ObterCategorias")
+                .then(response => response.json())
+                .then(categorias => {
+                    selectCategoria.innerHTML = "";
+                    if (categorias.length === 0) {
+                        selectCategoria.innerHTML = `<option value="">Nenhuma categoria disponível</option>`;
+                    } else {
+                        categorias.forEach(categoria => {
+                            selectCategoria.innerHTML += `<option value="${categoria.id}">${categoria.nome}</option>`;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar categorias:", error);
+                    selectCategoria.innerHTML = `<option value="">Erro ao carregar</option>`;
+                });
+        }
+
+        function aplicarMascaraDinheiro() {
+            let input = document.getElementById("valorLancamento");
+
+            input.addEventListener("input", function (e) {
+                let valor = e.target.value.replace(/\D/g, "");
+                let numero = parseFloat(valor) / 100;
+                e.target.value = numero.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+            });
+
+            input.addEventListener("blur", function (e) {
+                let numero = parseFloat(e.target.value.replace(/\./g, "").replace(",", ".")) || 0;
+                e.target.value = numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            });
+
+            input.addEventListener("focus", function (e) {
+                let valor = e.target.value.replace(/[^\d,]/g, "");
+                e.target.value = valor.replace(",", ".");
+            });
+        }
+
+        document.getElementById("adicionarLancamento").addEventListener("click", function () {
+            carregarCategorias();
+            let modal = new bootstrap.Modal(document.getElementById("modalLancamento"));
+            modal.show();
+        });
+
+        document.getElementById("formLancamento").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let btnSubmit = document.querySelector("#formLancamento button[type='submit']");
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = "Salvando...";
+
+            let valorInput = document.getElementById("valorLancamento").value;
+            let valorFormatado = valorInput.replace(/[^0-9,]/g, "").replace(",", ".");
+            let valorNumerico = parseFloat(valorFormatado);
+
+            if (isNaN(valorNumerico) || valorNumerico <= 0) {
+                alert("Por favor, insira um valor válido.");
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = "Adicionar";
+                return;
+            }
+
+            let transacaoDto = {
+                Valor: valorNumerico,
+                Descricao: "Lançamento manual",
+                Data: new Date().toISOString(),
+                Tipo: parseInt(document.getElementById("tipoLancamento").value),
+                CategoriaId: parseInt(document.getElementById("categoriaLancamento").value),
+                FormaPagamento: parseInt(document.getElementById("formaPagamento").value)
+            };
+
+            fetch("/Home/AdicionarTransacao", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(transacaoDto)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sucesso) {
+                    atualizarDados();
+                    let modalInstance = bootstrap.Modal.getInstance(document.getElementById("modalLancamento"));
+                    modalInstance.hide();
+                } else {
+                    alert("Erro ao salvar a transação: " + (data.mensagem || "Tente novamente."));
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao adicionar transação:", error);
+                alert("Erro ao adicionar transação. Verifique a conexão e tente novamente.");
+            })
+            .finally(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = "Adicionar";
+            });
+        });
+
+        aplicarMascaraDinheiro();
+        document.getElementById("selectMes").addEventListener("change", atualizarDados);
+        atualizarDados();
+    });
+</script>

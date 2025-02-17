@@ -1,0 +1,153 @@
+/* Fundo com gradiente suave */
+body {
+    background: linear-gradient(to right, #28a745, #218838);
+    color: #333;
+}
+
+/* Menu lateral fixo */
+#sidebar {
+    width: 220px;
+    min-height: 100vh;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    padding: 10px;
+    background-color: #212529;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1050;
+}
+
+    /* Esconder menu */
+    #sidebar.hidden {
+        transform: translateX(-100%);
+    }
+
+/* Responsividade para o menu no mobile */
+@media (max-width: 768px) {
+    #sidebar {
+        width: 70%;
+        height: 100vh;
+        box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Título do Menu */
+#sidebar h4 {
+    font-size: 18px;
+    margin-bottom: 5px;
+    text-align: center;
+    color: #fff;
+}
+
+/* Mensagem de boas-vindas */
+#sidebar .user-info {
+    font-size: 14px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+}
+
+/* Estilo dos itens do menu */
+#sidebar .nav-item {
+    margin-bottom: 3px;
+}
+
+#sidebar .nav-link {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    color: #ffffff;
+    border-radius: 5px;
+    transition: background 0.2s ease-in-out;
+}
+
+    #sidebar .nav-link i {
+        font-size: 16px;
+    }
+
+    #sidebar .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+/* Botão de Logout igual aos demais */
+#sidebar .logout-btn {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    background-color: #dc3545; /* Vermelho */
+    color: #ffffff !important; /* Garante que o texto fique branco */
+    border-radius: 5px;
+    text-align: center;
+    transition: background 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: bold;
+}
+
+    #sidebar .logout-btn i {
+        color: #ffffff !important; /* Garante que o ícone fique branco */
+    }
+
+    /* Efeito de hover */
+    #sidebar .logout-btn:hover {
+        background-color: #bb2d3b; /* Vermelho mais escuro no hover */
+    }
+
+/* Estilizando o botão de abrir menu */
+#openSidebar {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 2000;
+    background-color: #212529;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    display: none;
+}
+
+/* Exibir botão quando o menu for fechado */
+.hidden + #openSidebar {
+    display: block !important;
+}
+
+/* Ajustando o Header */
+.header-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .header-container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+}
+
+/* Responsividade para os elementos principais */
+.container-fluid {
+    margin-left: 220px;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Quando o menu for fechado */
+.sidebar-closed .container-fluid {
+    margin-left: 0;
+}
+
+/* Responsividade extra para mobile */
+@media (max-width: 768px) {
+    .container-fluid {
+        margin-left: 0;
+    }
+}
