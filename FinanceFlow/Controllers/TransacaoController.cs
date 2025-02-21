@@ -5,10 +5,8 @@ using FinanceFlow.Domain.Entities;
 using FinanceFlow.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Security.Claims;
+using FinanceFlow.Domain.DTOs;
 
 namespace FinanceFlow.Controllers
 {
@@ -89,6 +87,39 @@ namespace FinanceFlow.Controllers
             await _transacaoService.AdicionarTransacaoAsync(novaTransacao);
             return Ok(new { sucesso = true, mensagem = "Transação adicionada com sucesso!" });
         }
+
+        [HttpGet("ObterTransacaoPorId/{id}")]
+        public async Task<IActionResult> ObterTransacaoPorId(int id)
+        {
+            int usuarioId = ObterUsuarioId();
+            if (usuarioId == 0) return Unauthorized();
+
+            var transacao = await _transacaoService.ObterTransacaoPorIdAsync(id, usuarioId);
+            if (transacao == null) return NotFound();
+
+            return Ok(new
+            {
+                id = transacao.Id,
+                valor = transacao.Valor,
+                tipo = (int)transacao.Tipo,
+                formaPagamento = (int)transacao.FormaPagamento,
+                categoriaId = transacao.CategoriaId
+            });
+        }
+
+        [HttpPut("EditarTransacao")]
+        public async Task<IActionResult> EditarTransacao([FromBody] EditarTransacaoDto transacaoDto)
+        {
+            int usuarioId = ObterUsuarioId();
+            if (usuarioId == 0) return Unauthorized();
+
+            var resultado = await _transacaoService.EditarTransacaoAsync(transacaoDto, usuarioId);
+            if (resultado)
+                return Ok(new { sucesso = true });
+            else
+                return BadRequest(new { sucesso = false, mensagem = "Erro ao editar transação." });
+        }
+
 
         private int ObterUsuarioId()
         {

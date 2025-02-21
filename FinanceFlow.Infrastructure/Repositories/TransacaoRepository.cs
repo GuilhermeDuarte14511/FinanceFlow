@@ -23,6 +23,13 @@ namespace FinanceFlow.Infrastructure.Repositories
             return await _context.Transacoes.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
         }
 
+        public async Task<Transacao> GetByIdAndUsuarioIdAsync(int id, int usuarioId)
+        {
+            return await _context.Transacoes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == usuarioId);
+        }
+
         public async Task<IEnumerable<Transacao>> GetByUsuarioIdAndMesAsync(int usuarioId, int mes, int ano)
         {
             return await _context.Transacoes
@@ -43,14 +50,10 @@ namespace FinanceFlow.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Transacao transacao)
         {
-            var transacao = await _context.Transacoes.FindAsync(id);
-            if (transacao != null)
-            {
-                _context.Transacoes.Remove(transacao);
-                await _context.SaveChangesAsync();
-            }
+            _context.Transacoes.Remove(transacao);
+            await _context.SaveChangesAsync();
         }
     }
 }

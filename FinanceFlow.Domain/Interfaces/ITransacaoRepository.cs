@@ -9,8 +9,9 @@ namespace FinanceFlow.Domain.Interfaces
     {
         Task<Transacao> GetByIdAsync(int id);
         Task<IEnumerable<Transacao>> GetByUsuarioIdAndMesAsync(int usuarioId, int mes, int ano);
+        Task<Transacao> GetByIdAndUsuarioIdAsync(int id, int usuarioId);
         Task AddAsync(Transacao transacao);
         Task UpdateAsync(Transacao transacao);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(Transacao transacao);
     }
 }

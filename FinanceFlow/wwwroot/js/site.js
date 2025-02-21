@@ -158,13 +158,38 @@
                     } else {
                         data.transacoes.forEach(transacao => {
                             let valorFormatado = `R$ ${parseFloat(transacao.valor).toFixed(2)}`;
-                            tabela.innerHTML += `<tr>
-                            <td>${transacao.tipo}</td>
-                            <td>${transacao.formaPagamento}</td>
-                            <td>${valorFormatado}</td>
-                        </tr>`;
+                            tabela.innerHTML += `<tr data-id="${transacao.id}">
+                                <td>${transacao.tipo}</td>
+                                <td>${transacao.formaPagamento}</td>
+                                <td>${valorFormatado}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm btn-editar">
+                                        <i class='fas fa-edit'></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm btn-excluir">
+                                        <i class='fas fa-trash'></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+                        });
+
+                        // Eventos para botões Excluir
+                        document.querySelectorAll(".btn-excluir").forEach(btn => {
+                            btn.addEventListener("click", function () {
+                                let transacaoId = this.closest("tr").getAttribute("data-id");
+                                confirmarExclusao(transacaoId);
+                            });
+                        });
+
+                        // Eventos para botões Editar
+                        document.querySelectorAll(".btn-editar").forEach(btn => {
+                            btn.addEventListener("click", function () {
+                                let transacaoId = this.closest("tr").getAttribute("data-id");
+                                abrirModalEditar(transacaoId);
+                            });
                         });
                     }
+
 
                     if (graficoFinanceiro) {
                         graficoFinanceiro.destroy();
@@ -247,6 +272,78 @@
                     document.getElementById("loadingTabela").style.display = "none";
                 });
         }
+
+        function abrirModalEditar(transacaoId) {
+            fetch(`/api/Transacao/ObterTransacaoPorId/${transacaoId}`)
+                .then(response => response.json())
+                .then(transacao => {
+                    document.getElementById("editarTransacaoId").value = transacao.id;
+                    document.getElementById("editarTipoLancamento").value = transacao.tipo;
+                    document.getElementById("editarFormaPagamento").value = transacao.formaPagamento;
+                    document.getElementById("editarValorLancamento").value = parseFloat(transacao.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+                    carregarCategoriasEdicao(transacao.categoriaId);
+
+                    let modal = new bootstrap.Modal(document.getElementById("modalEditarLancamento"));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar transação:", error);
+                    showToast("Erro ao carregar transação para edição", "danger");
+                });
+        }
+
+        function carregarCategoriasEdicao(categoriaSelecionadaId) {
+            let selectCategoria = document.getElementById("editarCategoriaLancamento");
+            selectCategoria.innerHTML = `<option value="">Carregando...</option>`;
+
+            fetch("/api/Transacao/ObterCategorias")
+                .then(response => response.json())
+                .then(categorias => {
+                    selectCategoria.innerHTML = "";
+                    categorias.forEach(categoria => {
+                        selectCategoria.innerHTML += `<option value="${categoria.id}" ${categoria.id === categoriaSelecionadaId ? 'selected' : ''}>${categoria.nome}</option>`;
+                    });
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar categorias:", error);
+                    showToast("Erro ao carregar categorias", "danger");
+                });
+        }
+
+        document.getElementById("formEditarLancamento").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let transacaoDto = {
+                Id: parseInt(document.getElementById("editarTransacaoId").value),
+                Valor: parseFloat(document.getElementById("editarValorLancamento").value.replace(/[^0-9,-]+/g, "").replace(",", ".")),
+                Tipo: parseInt(document.getElementById("editarTipoLancamento").value),
+                CategoriaId: parseInt(document.getElementById("editarCategoriaLancamento").value),
+                FormaPagamento: parseInt(document.getElementById("editarFormaPagamento").value)
+            };
+
+            fetch("/api/Transacao/EditarTransacao", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(transacaoDto)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.sucesso) {
+                        bootstrap.Modal.getInstance(document.getElementById("modalEditarLancamento")).hide();
+                        atualizarDados();
+                        showToast("Transação editada com sucesso!", "success");
+                    } else {
+                        showToast(data.mensagem, "danger");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao editar transação:", error);
+                    showToast("Erro ao editar transação. Tente novamente!", "danger");
+                });
+        });
+
+
 
         function carregarCategorias() {
             let selectCategoria = document.getElementById("categoriaLancamento");

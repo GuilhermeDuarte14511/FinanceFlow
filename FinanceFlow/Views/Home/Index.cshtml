@@ -129,3 +129,48 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Editar Lançamento -->
+<div class="modal fade" id="modalEditarLancamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Editar Lançamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarLancamento">
+                    <input type="hidden" id="editarTransacaoId">
+                    <div class="mb-3">
+                        <label for="editarTipoLancamento" class="form-label">Tipo</label>
+                        <select id="editarTipoLancamento" class="form-select">
+                            <option value="1">Receita</option>
+                            <option value="2">Despesa</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editarFormaPagamento" class="form-label">Forma de Pagamento</label>
+                        <select id="editarFormaPagamento" class="form-select">
+                            <option value="1">Cartão de Crédito</option>
+                            <option value="2">Cartão de Débito</option>
+                            <option value="3">Dinheiro</option>
+                            <option value="4">Pix</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editarCategoriaLancamento" class="form-label">Categoria</label>
+                        <select id="editarCategoriaLancamento" class="form-select">
+                            <!-- opções carregadas via JS -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editarValorLancamento" class="form-label">Valor</label>
+                        <input type="text" class="form-control" id="editarValorLancamento">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Salvar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
