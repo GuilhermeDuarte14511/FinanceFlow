@@ -137,7 +137,7 @@
             let mesSelecionado = document.getElementById("selectMes").value;
             let anoAtual = new Date().getFullYear();
 
-            fetch(`/Home/ObterTransacoes?mes=${mesSelecionado}&ano=${anoAtual}`)
+            fetch(`/api/Transacao/ObterTransacoes?mes=${mesSelecionado}&ano=${anoAtual}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("loadingGrafico").style.display = "none";
@@ -252,7 +252,7 @@
             let selectCategoria = document.getElementById("categoriaLancamento");
             selectCategoria.innerHTML = `<option value="">Carregando...</option>`;
 
-            fetch("/Home/ObterCategorias")
+            fetch("/api/Transacao/ObterCategorias")
                 .then(response => response.json())
                 .then(categorias => {
                     selectCategoria.innerHTML = "";
@@ -266,7 +266,7 @@
                 })
                 .catch(error => {
                     console.error("Erro ao carregar categorias:", error);
-                    selectCategoria.innerHTML = `<option value="">Erro ao carregar</option>`;
+                    showToast("Erro ao carregar categorias", "danger");
                 });
         }
 
@@ -311,7 +311,7 @@
                 Descricao: "Lançamento manual"
             };
 
-            fetch("/Home/AdicionarTransacao", {
+            fetch("/api/Transacao/AdicionarTransacao", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(transacaoDto)
@@ -330,8 +330,6 @@
                 })
                 .catch(error => {
                     console.error("Erro ao adicionar transação:", error);
-                    botaoSubmit.innerHTML = "Adicionar";
-                    botaoSubmit.disabled = false;
                     showToast("Erro ao adicionar transação. Tente novamente!", "danger");
                 });
         });
@@ -340,6 +338,7 @@
         document.getElementById("selectMes").addEventListener("change", atualizarDados);
         atualizarDados();
     }
+
 
 
 
