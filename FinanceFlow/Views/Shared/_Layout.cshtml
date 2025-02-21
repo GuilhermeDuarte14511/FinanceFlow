@@ -52,7 +52,7 @@
                 <header class="bg-light p-3 rounded">
                     <div class="container-fluid">
                         <div class="text-center text-md-start">
-                            <h5 class="text-secondary">Dashboard</h5>
+                            <h5 class="text-secondary">@ViewData["Title"]</h5>
                         </div>
                     </div>
                 </header>
@@ -73,9 +73,12 @@
         </div>
     }
 
-    <!-- JS -->
+    <!-- JS Libraries -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- JS Personalizado -->
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
